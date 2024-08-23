@@ -1,0 +1,55 @@
+.image-uploader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .image-uploader input[type="file"] {
+    display: none;
+  }
+  
+  .image-uploader label {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background-color 0.3s ease;
+  }
+  .beautiful-textbox {
+    width: 300px;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+  }
+  
+  .beautiful-textbox:focus {
+    border-color: #4CAF50;
+    outline: none;
+  }
+  .image-uploader label:hover {
+    background-color: #0056b3;
+  }
+  
+  .image-uploader button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .image-uploader button:hover {
+    background-color: #1e7e34;
+  }
+  
