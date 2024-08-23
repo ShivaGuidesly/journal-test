@@ -4,6 +4,9 @@ import './ImageUploader.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button, Stack } from 'react-bootstrap';
 import { isDisabled } from '@testing-library/user-event/dist/utils';
+import Report from './Report';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'
 const completedUpload = async (count, tripId) => {
     try {
         const body = JSON.stringify({
@@ -39,7 +42,9 @@ const ImageUploader = () => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [textarea, setTextarea] = useState('');
+    const [dataObj, setDataOBj] = useState('');
     const [disableButton, setDisableButton] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState(false);
     const getUploadUrls = async (images, tripId) => {
         console.log('getUploadUrl called with tripId:', tripId);
         console.log('Number of images:', images.length);
@@ -88,28 +93,7 @@ const ImageUploader = () => {
         const results = await Promise.all(uploadPromises);
         console.log('All uploads completed. Results:', results);
         return true;
-        // if (uploadUrlData && uploadUrlData.length > 0) {
-        //     const uploadPromises = images.map(async (image, idx) => {
 
-        //         const imageName = image.name;
-
-        //         const uploadUrl = uploadUrlData[idx];
-
-        //         const response = await fetch(uploadUrl.url, {
-        //             method: 'PUT',
-        //             body: image,
-        //             headers: {
-        //                 'Content-Type': image.type,
-        //             },
-        //         });
-
-        //         if (!response.ok) {
-        //             console.error(`Error uploading ${imageName}:`, await response.text());
-        //         }
-        //     });
-
-        //     await Promise.all(uploadPromises);
-        // }
     };
     const sendImageToS3 = async (
         image,
@@ -164,6 +148,9 @@ const ImageUploader = () => {
     const handleFileChange = (e) => {
 
         setSelectedFiles(e.target.files);
+
+
+
     };
     const prettyPrint = async (data) => {
         // var ugly = document.getElementById('myTextArea').value;
@@ -174,6 +161,7 @@ const ImageUploader = () => {
     const showReport = async () => {
         setDisableButton(true);
         setTextarea("");
+        setDataOBj(null);
         try {
             const getReportDataResponse = await fetch(
                 `https://api.ml.guidesly.com/api/v1/report/${inputValue}`, {
@@ -187,9 +175,11 @@ const ImageUploader = () => {
                 JSON.stringify(getReportDataResponse.headers)
             );
 
-            if (getReportDataResponse.ok) {
+            if (getReportDataResponse.ok || getReportDataResponse.status == 404) {
                 // const _data = (await getReportDataResponse.json()) as Report;
-                var refined = JSON.stringify(await getReportDataResponse.json(), undefined, 4);
+                const dataObject = await getReportDataResponse.json()
+                setDataOBj(dataObject);
+                var refined = JSON.stringify(dataObject, undefined, 4);
                 setTextarea(refined);
                 // console.log('getReport Response data:', JSON.stringify(getReportDataResponse.json()));
                 // return _data;
@@ -205,16 +195,36 @@ const ImageUploader = () => {
     }
     const handleUpload = async () => {
         setDisableButton(true)
-        const uploadImages = await uploadImagesToS3(selectedFiles, inputValue)
-        if (uploadImages) {
-            const result = await completedUpload(selectedFiles.length, inputValue);
-            console.log('Upload completion result:', result);
-            // onComplete(result);
-        } else {
-            console.error('Failed to upload images');
-            // onComplete({ success: false, error: 'Failed to upload images' });
+        setUploadStatus(false)
+        if (!inputValue) {
+            toast.info("Enter GUID", {
+                position: "top-center"
+            });
+        }
+        else if (selectedFiles.length <= 0) {
+            toast.info("Select Files", {
+                position: "top-center"
+            });
+        }
+        else {
+            const uploadImages = await uploadImagesToS3(selectedFiles, inputValue)
+            if (uploadImages) {
+                const result = await completedUpload(selectedFiles.length, inputValue);
+                toast.success("Upload Completed", {
+                    position: "top-center"
+                });
+                console.log('Upload completion result:', result);
+                // onComplete(result);
+            } else {
+                toast.error("Upload Failed", {
+                    position: "top-center"
+                });
+                console.error('Failed to upload images');
+                // onComplete({ success: false, error: 'Failed to upload images' });
+            }
         }
         setDisableButton(false)
+        setUploadStatus(true)
     };
 
 
@@ -241,10 +251,13 @@ const ImageUploader = () => {
                             View Report
                         </Button>
                     </Stack>
+
                 </div>
-                <div style={{ fontSize: '12px' }}>
+                {dataObj ? <Report data={dataObj} /> : <></>}
+                {/* <div style={{ fontSize: '12px' }}>
                     <textarea value={textarea} rows="20" cols="80" width="500px"></textarea>
                 </div>
+                */}
             </>
         );
     };
@@ -265,9 +278,16 @@ const ImageUploader = () => {
                 <label htmlFor="file-input">Choose Images</label>
 
             </div>
-
+            <div style={{ paddingTop: 10, fontSize: '12px' }}>
+                {selectedFiles ? <div style={{ textDecoration: 'underline' }}>Selected files:</div> : <></>}
+                {selectedFiles && Array.from(selectedFiles).map(p => {
+                    return <div>{p.name}</div>
+                })}
+            </div>
             <ButtonComponent></ButtonComponent>
-        </div>
+            <div style={{ paddingTop: 10, fontSize: '12px' }}>
+                <ToastContainer /></div>
+        </div >
     );
 };
 
