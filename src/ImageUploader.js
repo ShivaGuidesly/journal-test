@@ -118,7 +118,7 @@ const ImageUploader = () => {
         );
         formData.append('key', preSignedUrl.key);
         formData.append('bucket', preSignedUrl.fields.bucket);
-        formData.append('Content-Type', "image/png");
+        formData.append('Content-Type', selectedFiles[index].type);
 
         formData.append('file', selectedFiles[index]);
 
@@ -253,7 +253,7 @@ const ImageUploader = () => {
                     </Stack>
 
                 </div>
-                {dataObj ? <Report data={dataObj} /> : <></>}
+                {dataObj ? <Report data={dataObj} /> : <><div>Report</div></>}
                 {/* <div style={{ fontSize: '12px' }}>
                     <textarea value={textarea} rows="20" cols="80" width="500px"></textarea>
                 </div>
